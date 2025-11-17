@@ -24,9 +24,24 @@ namespace EmployeeMangerAPI.Services
             return _mapper.Map<EmployeeDTO>(employee);
         }
 
-        public Task<bool> AssignProjectToEmployee(int employeeId, int projectId)
+        public async Task<bool> AssignProjectToEmployee(int employeeId, int projectId)
         {
-            throw new NotImplementedException();
+
+            var employee = await _context.Employees.FindAsync(employeeId);
+            var project = await _context.Projects.FindAsync(projectId);
+
+            if (employee == null || project == null) return false;
+            var exists=await _context.EmployeesProjects.AnyAsync(ep=>ep.ProjectId == projectId && ep.EmployeeId==employeeId);
+            if (exists) return false;
+           _context.Add(new EmployeeProject
+            {
+                EmployeeId = employeeId,
+                ProjectId = projectId,
+            });
+
+            await _context.SaveChangesAsync();
+            return true;
+
         }
 
         public async Task<bool> DeleteEmployee(int id)
@@ -68,14 +83,22 @@ namespace EmployeeMangerAPI.Services
             return _mapper.Map<EmployeeDTO>(employee);
         }
 
-        public Task<IEnumerable<ProjectDTO>> GetProjectsForEmployee(int employeeId)
+        public async Task<IEnumerable<ProjectDTO>> GetProjectsForEmployee(int employeeId)
         {
-            throw new NotImplementedException();
+           var projects=await _context.EmployeesProjects.Where(ep=>ep.EmployeeId == employeeId).Select(ep=>ep.Project).ToListAsync();
+            return _mapper.Map<IEnumerable<ProjectDTO>>(projects);
+
         }
 
-        public Task<IEnumerable<EmployeeDTO>> SearchEmployeesBySkills(List<string> skills)
+        public async Task<IEnumerable<EmployeeDTO>> SearchEmployeesBySkills(List<string> skills)
         {
-            throw new NotImplementedException();
+
+            var employees =  _context.Employees
+                    .AsEnumerable() // EF can't translate List<string> filtering
+                    .Where(e => skills.All(s => e.Skills.Contains(s)))
+                    .ToList();
+
+            return _mapper.Map<IEnumerable<EmployeeDTO>>(employees);
         }
 
         public async Task<EmployeeDTO?> UpdateEmployee(int id, CreateEmployeeDTO updatedDTO)

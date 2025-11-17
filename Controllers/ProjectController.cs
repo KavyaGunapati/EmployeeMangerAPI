@@ -1,4 +1,5 @@
 ﻿using EmployeeMangerAPI.DTOs;
+using EmployeeMangerAPI.Models;
 using EmployeeMangerAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -49,6 +50,13 @@ namespace EmployeeMangerAPI.Controllers
             var result = await _projectService.DeleteProject(id);
             if (!result) return NotFound($"Project with ID {id} not found.");
             return NoContent();
+        }
+        [HttpGet("{projectId}/employees")]
+        public async Task<IActionResult> GetEmployeesByProject(int projectId)
+        {
+            var employees = await _projectService.GetEmployeesForProject(projectId);
+            if (!employees.Any()) return NotFound("No employees found for this employee.");
+            return Ok(employees);
         }
     }
 }

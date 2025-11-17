@@ -51,6 +51,12 @@ namespace EmployeeMangerAPI.Services
             return _mapper.Map<IEnumerable<ProjectDTO>>(projects);
         }
 
+        public async Task<IEnumerable<EmployeeDTO>> GetEmployeesForProject(int projectId)
+        {
+            var employees = await _context.EmployeesProjects.Where(ep => ep.ProjectId == projectId).Select(ep => ep.Employee).ToListAsync();
+            return _mapper.Map<IEnumerable<EmployeeDTO>>(employees);
+        }
+
         public async Task<ProjectDTO?> GetProjectById(int id)
         {
             var project = await _context.Projects.FindAsync(id);
